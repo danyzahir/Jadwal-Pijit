@@ -559,6 +559,30 @@
                 padding: 12px 10px;
                 font-size: 0.85rem;
             }
+
+            /* Force 2 columns on mobile for the weekly planner */
+            .weekly-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .day-box {
+                min-height: 200px;
+            }
+
+            .day-box-header {
+                font-size: 0.8rem;
+                padding: 8px 10px;
+            }
+
+            .fixed-item {
+                padding: 8px;
+                font-size: 0.75rem;
+            }
+
+            .time-val {
+                padding: 1px 4px;
+            }
         }
     </style>
 </head>
