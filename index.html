@@ -78,17 +78,35 @@
             font-weight: 400;
         }
 
-        /* Main Grid */
+        /* Main Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.8s ease-out;
+        }
+
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 0.8fr 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: 380px 1fr;
+            gap: 25px;
             align-items: start;
         }
 
-        @media (max-width: 1200px) {
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        @media (max-width: 1100px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
+            }
+            .sidebar {
+                order: 1;
+            }
+            .planner-section {
+                order: 2;
             }
         }
 
@@ -374,6 +392,150 @@
             font-weight: 500;
         }
 
+        /* Weekly Planner Grid */
+        .weekly-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .day-box {
+            background: #fcfcfc;
+            border: 1px solid #eee;
+            border-radius: var(--radius-md);
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .day-box-header {
+            padding: 10px 15px;
+            background: #fdf2f2;
+            border-bottom: 1px solid #eee;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .day-item-list {
+            flex: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .fixed-item {
+            background: white;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary-color);
+            font-size: 0.85rem;
+            position: relative;
+            cursor: move;
+            transition: var(--transition);
+        }
+
+        .fixed-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(230,0,0,0.1);
+        }
+
+        .fixed-item .name {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .fixed-item .time-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+        }
+
+        .fixed-item .time-val {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .fixed-item .time-val:hover {
+            background: #e6e6e6;
+            color: var(--primary-color);
+        }
+
+        .fixed-item .btn-mini-delete {
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: #ff4d4d;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .fixed-item:hover .btn-mini-delete {
+            opacity: 1;
+        }
+
+        .day-box.drop-zone-active {
+            background: #fdf2f2;
+            border-color: var(--primary-color);
+            border-style: dashed;
+        }
+
+        /* Inline Edit Input */
+        .time-edit-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #fff;
+            padding: 2px;
+            border-radius: 6px;
+            border: 1.5px solid var(--primary-color);
+            box-shadow: 0 4px 12px rgba(230,0,0,0.15);
+            z-index: 10;
+        }
+
+        .mini-select {
+            padding: 2px 4px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .mini-select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn-mini-save {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-mini-save:hover {
+            background: var(--primary-hover);
+        }
+
         @media (max-width: 576px) {
             body {
                 padding: 15px;
@@ -413,54 +575,47 @@
         </header>
 
         <main class="dashboard-grid">
-            <!-- Form Input Section -->
-            <section class="card">
-                <h2 class="card-title">Input Jadwal Baru</h2>
-                <form id="scheduleForm">
-                    <div class="form-group">
-                        <label for="customerName">Nama Pelanggan</label>
-                        <input type="text" id="customerName" class="form-control" placeholder="Masukkan nama pelanggan"
-                            required>
-                    </div>
-                    <div class="form-group">
-                        <label for="scheduleDay">Pilih Hari</label>
-                        <select id="scheduleDay" class="form-control" required>
-                            <option value="" disabled selected>Pilih hari</option>
-                            <option value="Senin">Senin</option>
-                            <option value="Selasa">Selasa</option>
-                            <option value="Rabu">Rabu</option>
-                            <option value="Kamis">Kamis</option>
-                            <option value="Jumat">Jumat</option>
-                            <option value="Sabtu">Sabtu</option>
-                            <option value="Minggu">Minggu</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Jam Pijit (Format 24 Jam)</label>
-                        <div class="time-picker">
-                            <select id="scheduleHour" class="form-control" required>
-                                <option value="" disabled selected>Jam</option>
-                                <!-- Hours 00-23 will be injected -->
-                            </select>
-                            <span>:</span>
-                            <select id="scheduleMinute" class="form-control" required>
-                                <option value="" disabled selected>Menit</option>
-                                <!-- Minutes 00, 15, 30, 45 or full range -->
+            <div class="sidebar">
+                <!-- Form Input Section -->
+                <section class="card">
+                    <h2 class="card-title">Input Jadwal Baru</h2>
+                    <form id="scheduleForm">
+                        <div class="form-group">
+                            <label for="customerName">Nama Pelanggan</label>
+                            <input type="text" id="customerName" class="form-control" placeholder="Masukkan nama"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleDay">Pilih Hari</label>
+                            <select id="scheduleDay" class="form-control" required>
+                                <option value="" disabled selected>Pilih hari</option>
+                                <option value="Senin">Senin</option>
+                                <option value="Selasa">Selasa</option>
+                                <option value="Rabu">Rabu</option>
+                                <option value="Kamis">Kamis</option>
+                                <option value="Jumat">Jumat</option>
+                                <option value="Sabtu">Sabtu</option>
+                                <option value="Minggu">Minggu</option>
                             </select>
                         </div>
-                    </div>
-                    <button type="submit" class="btn">
-                        <span>Simpan Jadwal</span>
-                    </button>
-                </form>
-            </section>
+                        <div class="form-group">
+                            <label>Jam Pijit</label>
+                            <div class="time-picker">
+                                <select id="scheduleHour" class="form-control" required></select>
+                                <span>:</span>
+                                <select id="scheduleMinute" class="form-control" required></select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">
+                            <span>Simpan Jadwal</span>
+                        </button>
+                    </form>
+                </section>
 
-            <!-- Riwayat Jadwal Section -->
-            <section class="card drop-zone" id="historyDropZone" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'history')">
-                <div class="table-header">
-                    <h2 class="card-title" style="margin-bottom: 0;">Riwayat Jadwal</h2>
-                    <div class="filter-group">
-                        <label for="dayFilter" style="font-size: 0.8rem; color: var(--text-muted);">Filter:</label>
+                <!-- Riwayat Jadwal Section -->
+                <section class="card drop-zone" id="historyDropZone" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'history')">
+                    <div class="table-header">
+                        <h2 class="card-title" style="margin-bottom: 0;">Riwayat</h2>
                         <select id="dayFilter" class="filter-select">
                             <option value="all">Semua</option>
                             <option value="Senin">Senin</option>
@@ -472,53 +627,56 @@
                             <option value="Minggu">Minggu</option>
                         </select>
                     </div>
-                </div>
 
-                <div class="table-container">
-                    <table id="scheduleTable">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Nama</th>
-                                <th>Hari</th>
-                                <th>Jam</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scheduleBody">
-                            <!-- Data injected here -->
-                        </tbody>
-                    </table>
-                    <div id="emptyState" class="empty-state">
-                        <p>Tarik jadwal ke sini</p>
+                    <div class="table-container">
+                        <table id="scheduleTable">
+                            <tbody id="scheduleBody">
+                                <!-- Data injected here -->
+                            </tbody>
+                        </table>
+                        <div id="emptyState" class="empty-state">
+                            <p>Belum ada jadwal</p>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
 
-            <!-- Daftar Fix Pijit Section -->
-            <section class="card drop-zone" id="fixedDropZone" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed')">
+            <!-- Daftar Fix Pijit Section (Weekly Planner) -->
+            <section class="card planner-section">
                 <div class="table-header">
-                    <h2 class="card-title" style="margin-bottom: 0;">Daftar Fix Pijit</h2>
-                    <span class="badge-fixed">Confirmed</span>
+                    <h2 class="card-title" style="margin-bottom: 0;">Daftar Fix Pijit (Weekly Planner)</h2>
+                    <span class="badge-fixed">Confirmed Weekly</span>
                 </div>
 
-                <div class="table-container">
-                    <table id="fixedTable">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Nama</th>
-                                <th>Hari</th>
-                                <th>Jam</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="fixedBody">
-                            <!-- Data injected here -->
-                        </tbody>
-                    </table>
-                    <div id="fixedEmptyState" class="empty-state">
-                        <p>Tarik jadwal ke sini (Fix)</p>
+                <div class="weekly-grid" id="weeklyGrid">
+                    <!-- 7 Day Boxes will be generated or mapped here -->
+                    <div class="day-box" data-day="Senin" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed', 'Senin')">
+                        <div class="day-box-header">Senin <span class="count" id="count-Senin">0</span></div>
+                        <div class="day-item-list" id="list-Senin"></div>
+                    </div>
+                    <div class="day-box" data-day="Selasa" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed', 'Selasa')">
+                        <div class="day-box-header">Selasa <span class="count" id="count-Selasa">0</span></div>
+                        <div class="day-item-list" id="list-Selasa"></div>
+                    </div>
+                    <div class="day-box" data-day="Rabu" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed', 'Rabu')">
+                        <div class="day-box-header">Rabu <span class="count" id="count-Rabu">0</span></div>
+                        <div class="day-item-list" id="list-Rabu"></div>
+                    </div>
+                    <div class="day-box" data-day="Kamis" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed', 'Kamis')">
+                        <div class="day-box-header">Kamis <span class="count" id="count-Kamis">0</span></div>
+                        <div class="day-item-list" id="list-Kamis"></div>
+                    </div>
+                    <div class="day-box" data-day="Jumat" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed', 'Jumat')">
+                        <div class="day-box-header">Jumat <span class="count" id="count-Jumat">0</span></div>
+                        <div class="day-item-list" id="list-Jumat"></div>
+                    </div>
+                    <div class="day-box" data-day="Sabtu" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed', 'Sabtu')">
+                        <div class="day-box-header">Sabtu <span class="count" id="count-Sabtu">0</span></div>
+                        <div class="day-item-list" id="list-Sabtu"></div>
+                    </div>
+                    <div class="day-box" data-day="Minggu" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed', 'Minggu')">
+                        <div class="day-box-header">Minggu <span class="count" id="count-Minggu">0</span></div>
+                        <div class="day-item-list" id="list-Minggu"></div>
                     </div>
                 </div>
             </section>
@@ -540,12 +698,12 @@
         const scheduleHour = document.getElementById('scheduleHour');
         const scheduleMinute = document.getElementById('scheduleMinute');
         const scheduleBody = document.getElementById('scheduleBody');
-        const fixedBody = document.getElementById('fixedBody');
         const emptyState = document.getElementById('emptyState');
-        const fixedEmptyState = document.getElementById('fixedEmptyState');
         const dayFilter = document.getElementById('dayFilter');
         const notification = document.getElementById('notification');
         const notifMessage = document.getElementById('notif-message');
+
+        const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
         // Initialize App
         function init() {
@@ -555,7 +713,6 @@
 
         // Populate Hour and Minute Selects
         function populateTimeSelects() {
-            // Hours 00-23
             for (let i = 0; i < 24; i++) {
                 const hour = i.toString().padStart(2, '0');
                 const option = document.createElement('option');
@@ -563,7 +720,6 @@
                 option.textContent = hour;
                 scheduleHour.appendChild(option);
             }
-            // Minutes 00, 05, 10, ... 55
             for (let i = 0; i < 60; i += 5) {
                 const min = i.toString().padStart(2, '0');
                 const option = document.createElement('option');
@@ -573,7 +729,7 @@
             }
         }
 
-        // --- Drag & Drop Core Logic ---
+        // --- Drag & Drop ---
         let draggedItemId = null;
         let sourceList = null;
 
@@ -581,14 +737,12 @@
             draggedItemId = id;
             sourceList = list;
             e.target.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            // Set data for better compatibility
             e.dataTransfer.setData('text/plain', id);
         }
 
         function handleDragEnd(e) {
             e.target.classList.remove('dragging');
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('drop-zone-active'));
+            document.querySelectorAll('.drop-zone, .day-box').forEach(c => c.classList.remove('drop-zone-active'));
         }
 
         function handleDragOver(e) {
@@ -597,45 +751,56 @@
             e.dataTransfer.dropEffect = 'move';
         }
 
-        function handleDrop(e, targetList) {
+        function handleDrop(e, targetList, targetDay = null) {
             e.preventDefault();
             e.currentTarget.classList.remove('drop-zone-active');
+            
+            // If dropping in fixed, it MUST have a targetDay
+            if (targetList === 'fixed' && !targetDay) {
+                // If dropped on the card but not a specific box, fallback or ignore
+                return; 
+            }
 
-            if (sourceList === targetList) return;
-
-            moveSchedule(draggedItemId, sourceList, targetList);
+            moveSchedule(draggedItemId, sourceList, targetList, targetDay);
         }
 
-        function moveSchedule(id, from, to) {
+        function moveSchedule(id, from, to, targetDay) {
             let item;
             if (from === 'history') {
                 const index = schedules.findIndex(s => s.id === id);
                 if (index === -1) return;
                 item = schedules.splice(index, 1)[0];
-                fixedSchedules.push(item);
+                if (to === 'fixed') {
+                    item.day = targetDay;
+                    fixedSchedules.push(item);
+                } else {
+                    schedules.push(item); // Should not happen but for safety
+                }
             } else {
                 const index = fixedSchedules.findIndex(s => s.id === id);
                 if (index === -1) return;
                 item = fixedSchedules.splice(index, 1)[0];
-                schedules.push(item);
+                if (to === 'history') {
+                    schedules.push(item);
+                } else {
+                    // Moving between day boxes in fixed
+                    item.day = targetDay;
+                    fixedSchedules.push(item);
+                }
             }
 
             saveAll();
             renderSchedules();
-            showNotification(`Berhasil dipindahkan ke ${to === 'fixed' ? 'Daftar Fix' : 'Riwayat Jadwal'}`);
+            showNotification(`Jadwal dipindahkan ke ${to === 'fixed' ? targetDay : 'Riwayat'}`);
         }
 
-        // --- Form & List Management ---
+        // --- Form & Rendering ---
         form.addEventListener('submit', function (e) {
             e.preventDefault();
-
             const hour = scheduleHour.value;
             const minute = scheduleMinute.value;
 
-            if (!hour || !minute) {
-                showNotification('Pilih jam dan menit terlebih dahulu!', true);
-                return;
-            }
+            if (!hour || !minute) return;
 
             const newSchedule = {
                 id: Date.now(),
@@ -647,77 +812,129 @@
             schedules.push(newSchedule);
             saveAll();
             renderSchedules();
-            showNotification('Jadwal berhasil disimpan!');
+            showNotification('Jadwal tersimpan di Riwayat.');
             form.reset();
         });
 
         function renderSchedules() {
-            renderList('history');
-            renderList('fixed');
+            renderHistory();
+            renderFixedPlanner();
         }
 
-        function renderList(listType) {
-            const isFixed = listType === 'fixed';
-            const body = isFixed ? fixedBody : scheduleBody;
-            const data = isFixed ? fixedSchedules : schedules;
-            const empty = isFixed ? fixedEmptyState : emptyState;
+        function renderHistory() {
             const filter = dayFilter.value;
+            let displayData = [...schedules];
 
-            const dayOrder = {
-                'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4,
-                'Jumat': 5, 'Sabtu': 6, 'Minggu': 7
-            };
-
-            // Filter only applies to history
-            let displayData = [...data];
-            if (!isFixed && filter !== 'all') {
+            if (filter !== 'all') {
                 displayData = displayData.filter(s => s.day === filter);
             }
 
-            // Sort (Day -> Time)
+            // Day order sorting
+            const dayOrder = { 'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6, 'Minggu': 7 };
             displayData.sort((a, b) => {
-                if (dayOrder[a.day] !== dayOrder[b.day]) {
-                    return dayOrder[a.day] - dayOrder[b.day];
-                }
+                if (dayOrder[a.day] !== dayOrder[b.day]) return dayOrder[a.day] - dayOrder[b.day];
                 return a.time.localeCompare(b.time);
             });
 
-            body.innerHTML = '';
-            
+            scheduleBody.innerHTML = '';
             if (displayData.length === 0) {
-                empty.classList.add('active');
+                emptyState.classList.add('active');
             } else {
-                empty.classList.remove('active');
-                displayData.forEach((s, index) => {
+                emptyState.classList.remove('active');
+                displayData.forEach((s, idx) => {
                     const row = document.createElement('tr');
                     row.draggable = true;
-                    row.setAttribute('ondragstart', `handleDragStart(event, ${s.id}, '${listType}')`);
+                    row.setAttribute('ondragstart', `handleDragStart(event, ${s.id}, 'history')`);
                     row.setAttribute('ondragend', `handleDragEnd(event)`);
-                    
                     row.innerHTML = `
-                        <td>${index + 1}</td>
+                        <td>${idx + 1}</td>
                         <td style="font-weight: 500;">${s.name}</td>
-                        <td><span style="color: var(--primary-color); font-weight: 500;">${s.day}</span></td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted);">${s.day}</td>
                         <td>${s.time}</td>
-                        <td>
-                            <button class="btn-delete" onclick="deleteItem(${s.id}, '${listType}')">Hapus</button>
-                        </td>
+                        <td><button class="btn-delete" onclick="deleteItem(${s.id}, 'history')">×</button></td>
                     `;
-                    body.appendChild(row);
+                    scheduleBody.appendChild(row);
                 });
             }
         }
 
-        window.deleteItem = function (id, listType) {
-            if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
-                if (listType === 'history') {
-                    schedules = schedules.filter(s => s.id !== id);
-                } else {
-                    fixedSchedules = fixedSchedules.filter(s => s.id !== id);
-                }
+        function renderFixedPlanner() {
+            DAYS.forEach(day => {
+                const listEl = document.getElementById(`list-${day}`);
+                const countEl = document.getElementById(`count-${day}`);
+                const dayItems = fixedSchedules.filter(s => s.day === day).sort((a, b) => a.time.localeCompare(b.time));
+
+                listEl.innerHTML = '';
+                countEl.textContent = dayItems.length;
+
+                dayItems.forEach(s => {
+                    const item = document.createElement('div');
+                    item.className = 'fixed-item';
+                    item.draggable = true;
+                    item.setAttribute('ondragstart', `handleDragStart(event, ${s.id}, 'fixed')`);
+                    item.setAttribute('ondragend', `handleDragEnd(event)`);
+                    item.innerHTML = `
+                        <span class="name">${s.name}</span>
+                        <div class="time-row">
+                            <span class="time-val" onclick="editTime(${s.id}, this)">${s.time}</span>
+                            <span class="btn-mini-delete" onclick="deleteItem(${s.id}, 'fixed')">🗑</span>
+                        </div>
+                    `;
+                    listEl.appendChild(item);
+                });
+            });
+        }
+
+        window.editTime = function (id, element) {
+            if (element.querySelector('.time-edit-container')) return;
+
+            const originalTime = element.textContent;
+            const [h, m] = originalTime.split(':');
+
+            let hourOptions = '';
+            for (let i = 0; i < 24; i++) {
+                const val = i.toString().padStart(2, '0');
+                hourOptions += `<option value="${val}" ${val === h ? 'selected' : ''}>${val}</option>`;
+            }
+
+            let minOptions = '';
+            for (let i = 0; i < 60; i += 5) {
+                const val = i.toString().padStart(2, '0');
+                minOptions += `<option value="${val}" ${val === m ? 'selected' : ''}>${val}</option>`;
+            }
+
+            element.innerHTML = `
+                <div class="time-edit-container" onclick="event.stopPropagation()">
+                    <select class="mini-select s-hour">${hourOptions}</select>
+                    <span>:</span>
+                    <select class="mini-select s-min">${minOptions}</select>
+                    <button class="btn-mini-save" onclick="saveInlineTime(${id}, this.parentElement)">✓</button>
+                    <button class="btn-mini-save" style="background:#ccc;" onclick="renderSchedules()">×</button>
+                </div>
+            `;
+        };
+
+        function saveInlineTime(id, container) {
+            const h = container.querySelector('.s-hour').value;
+            const m = container.querySelector('.s-min').value;
+            const newValue = `${h}:${m}`;
+
+            const item = fixedSchedules.find(s => s.id === id);
+            if (item) {
+                item.time = newValue;
+                saveAll();
+                showNotification('Jam diperbarui.');
+            }
+            
+            renderSchedules();
+        }
+
+        window.deleteItem = function (id, list) {
+            if (confirm('Hapus jadwal?')) {
+                if (list === 'history') schedules = schedules.filter(s => s.id !== id);
+                else fixedSchedules = fixedSchedules.filter(s => s.id !== id);
                 saveAll();
                 renderSchedules();
-                showNotification('Data telah dihapus', true);
             }
         };
 
@@ -726,16 +943,13 @@
             localStorage.setItem(STORAGE_KEY_FIXED, JSON.stringify(fixedSchedules));
         }
 
-        function showNotification(message, isError = false) {
-            notifMessage.textContent = message;
-            notification.classList.toggle('error', isError);
-            notification.classList.add('show');
+        function showNotification(msg, isError = false) {
+            notifMessage.textContent = msg;
+            notification.className = `notification ${isError ? 'error' : ''} show`;
             setTimeout(() => notification.classList.remove('show'), 3000);
         }
 
-        dayFilter.addEventListener('change', renderSchedules);
-
-        // Run Init
+        dayFilter.addEventListener('change', renderHistory);
         init();
     </script>
 </body>
