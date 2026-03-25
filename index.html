@@ -288,6 +288,38 @@
             color: #fff;
         }
 
+        .btn-confirm {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-confirm:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .history-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .mini-day-select {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -890,17 +922,37 @@
                     row.draggable = true;
                     row.setAttribute('ondragstart', `handleDragStart(event, ${s.id}, 'history')`);
                     row.setAttribute('ondragend', `handleDragEnd(event)`);
+                    
+                    let dayOptions = '';
+                    DAYS.forEach(day => {
+                        dayOptions += `<option value="${day}" ${day === s.day ? 'selected' : ''}>${day}</option>`;
+                    });
+
                     row.innerHTML = `
                         <td>${idx + 1}</td>
                         <td style="font-weight: 500;">${s.name}</td>
                         <td style="font-size: 0.8rem; color: var(--text-muted);">${s.day}</td>
                         <td>${s.time}</td>
-                        <td><button class="btn-delete" onclick="deleteItem(${s.id}, 'history')">×</button></td>
+                        <td>
+                            <div class="history-actions">
+                                <select class="mini-day-select" id="sel-${s.id}">
+                                    ${dayOptions}
+                                </select>
+                                <button class="btn-confirm" onclick="moveFromHistory(${s.id})">Fix</button>
+                                <button class="btn-delete" onclick="deleteItem(${s.id}, 'history')">×</button>
+                            </div>
+                        </td>
                     `;
                     scheduleBody.appendChild(row);
                 });
             }
         }
+
+        window.moveFromHistory = function(id) {
+            const select = document.getElementById(`sel-${id}`);
+            const targetDay = select.value;
+            moveSchedule(id, 'history', 'fixed', targetDay);
+        };
 
         function renderFixedPlanner() {
             DAYS.forEach(day => {
