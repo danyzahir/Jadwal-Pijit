@@ -81,11 +81,12 @@
         /* Main Grid */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 30px;
+            grid-template-columns: 0.8fr 1fr 1fr;
+            gap: 20px;
+            align-items: start;
         }
 
-        @media (max-width: 992px) {
+        @media (max-width: 1200px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
@@ -345,6 +346,34 @@
             color: var(--text-muted);
         }
 
+        /* Drag and Drop Styles */
+        tr[draggable="true"] {
+            cursor: move;
+            user-select: none;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            background: #fdf2f2 !important;
+            border: 2px dashed var(--primary-color);
+        }
+
+        .drop-zone-active {
+            box-shadow: 0 0 15px rgba(230, 0, 0, 0.2);
+            border: 2px dashed var(--primary-color) !important;
+            transform: scale(1.02);
+            transition: var(--transition);
+        }
+
+        .badge-fixed {
+            background: #4caf50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
         @media (max-width: 576px) {
             body {
                 padding: 15px;
@@ -394,12 +423,17 @@
                             required>
                     </div>
                     <div class="form-group">
-                        <label for="scheduleDate">Tanggal Pijit</label>
-                        <input type="date" id="scheduleDate" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="scheduleDay">Hari</label>
-                        <input type="text" id="scheduleDay" class="form-control" placeholder="Otomatis terisi" readonly>
+                        <label for="scheduleDay">Pilih Hari</label>
+                        <select id="scheduleDay" class="form-control" required>
+                            <option value="" disabled selected>Pilih hari</option>
+                            <option value="Senin">Senin</option>
+                            <option value="Selasa">Selasa</option>
+                            <option value="Rabu">Rabu</option>
+                            <option value="Kamis">Kamis</option>
+                            <option value="Jumat">Jumat</option>
+                            <option value="Sabtu">Sabtu</option>
+                            <option value="Minggu">Minggu</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Jam Pijit (Format 24 Jam)</label>
@@ -422,13 +456,13 @@
             </section>
 
             <!-- Riwayat Jadwal Section -->
-            <section class="card">
+            <section class="card drop-zone" id="historyDropZone" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'history')">
                 <div class="table-header">
                     <h2 class="card-title" style="margin-bottom: 0;">Riwayat Jadwal</h2>
                     <div class="filter-group">
-                        <label for="dayFilter" style="font-size: 0.8rem; color: var(--text-muted);">Filter Hari:</label>
+                        <label for="dayFilter" style="font-size: 0.8rem; color: var(--text-muted);">Filter:</label>
                         <select id="dayFilter" class="filter-select">
-                            <option value="all">Semua Hari</option>
+                            <option value="all">Semua</option>
                             <option value="Senin">Senin</option>
                             <option value="Selasa">Selasa</option>
                             <option value="Rabu">Rabu</option>
@@ -446,20 +480,45 @@
                             <tr>
                                 <th>No</th>
                                 <th>Nama</th>
-                                <th>Tanggal</th>
                                 <th>Hari</th>
                                 <th>Jam</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="scheduleBody">
-                            <!-- Data will be injected here -->
+                            <!-- Data injected here -->
                         </tbody>
                     </table>
-
                     <div id="emptyState" class="empty-state">
-                        <div class="empty-state-icon">📅</div>
-                        <p>Belum ada jadwal tersimpan.</p>
+                        <p>Tarik jadwal ke sini</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Daftar Fix Pijit Section -->
+            <section class="card drop-zone" id="fixedDropZone" ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'fixed')">
+                <div class="table-header">
+                    <h2 class="card-title" style="margin-bottom: 0;">Daftar Fix Pijit</h2>
+                    <span class="badge-fixed">Confirmed</span>
+                </div>
+
+                <div class="table-container">
+                    <table id="fixedTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama</th>
+                                <th>Hari</th>
+                                <th>Jam</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fixedBody">
+                            <!-- Data injected here -->
+                        </tbody>
+                    </table>
+                    <div id="fixedEmptyState" class="empty-state">
+                        <p>Tarik jadwal ke sini (Fix)</p>
                     </div>
                 </div>
             </section>
@@ -469,17 +528,21 @@
     <script>
         // Constants & State
         const STORAGE_KEY = 'relaxation_schedules';
+        const STORAGE_KEY_FIXED = 'relaxation_fixed_schedules';
+        
         let schedules = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let fixedSchedules = JSON.parse(localStorage.getItem(STORAGE_KEY_FIXED)) || [];
 
         // DOM Elements
         const form = document.getElementById('scheduleForm');
         const customerName = document.getElementById('customerName');
-        const scheduleDate = document.getElementById('scheduleDate');
         const scheduleDay = document.getElementById('scheduleDay');
         const scheduleHour = document.getElementById('scheduleHour');
         const scheduleMinute = document.getElementById('scheduleMinute');
         const scheduleBody = document.getElementById('scheduleBody');
+        const fixedBody = document.getElementById('fixedBody');
         const emptyState = document.getElementById('emptyState');
+        const fixedEmptyState = document.getElementById('fixedEmptyState');
         const dayFilter = document.getElementById('dayFilter');
         const notification = document.getElementById('notification');
         const notifMessage = document.getElementById('notif-message');
@@ -487,14 +550,12 @@
         // Initialize App
         function init() {
             populateTimeSelects();
-            cleanupExpiredSchedules();
             renderSchedules();
-            setMinDate();
         }
 
         // Populate Hour and Minute Selects
         function populateTimeSelects() {
-            // Hours
+            // Hours 00-23
             for (let i = 0; i < 24; i++) {
                 const hour = i.toString().padStart(2, '0');
                 const option = document.createElement('option');
@@ -502,7 +563,7 @@
                 option.textContent = hour;
                 scheduleHour.appendChild(option);
             }
-            // Minutes (every 15 or 5 mins?) - lets do every 5 mins for flexibility
+            // Minutes 00, 05, 10, ... 55
             for (let i = 0; i < 60; i += 5) {
                 const min = i.toString().padStart(2, '0');
                 const option = document.createElement('option');
@@ -512,158 +573,170 @@
             }
         }
 
-        // Set minimum date for input to today
-        function setMinDate() {
-            const today = new Date().toISOString().split('T')[0];
-            scheduleDate.setAttribute('min', today);
+        // --- Drag & Drop Core Logic ---
+        let draggedItemId = null;
+        let sourceList = null;
+
+        function handleDragStart(e, id, list) {
+            draggedItemId = id;
+            sourceList = list;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            // Set data for better compatibility
+            e.dataTransfer.setData('text/plain', id);
         }
 
-        // Auto Generate Day from Date
-        scheduleDate.addEventListener('change', function () {
-            if (this.value) {
-                const date = new Date(this.value);
-                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                scheduleDay.value = days[date.getDay()];
-            } else {
-                scheduleDay.value = '';
-            }
-        });
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('drop-zone-active'));
+        }
 
-        // Form Submit Handler
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drop-zone-active');
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e, targetList) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drop-zone-active');
+
+            if (sourceList === targetList) return;
+
+            moveSchedule(draggedItemId, sourceList, targetList);
+        }
+
+        function moveSchedule(id, from, to) {
+            let item;
+            if (from === 'history') {
+                const index = schedules.findIndex(s => s.id === id);
+                if (index === -1) return;
+                item = schedules.splice(index, 1)[0];
+                fixedSchedules.push(item);
+            } else {
+                const index = fixedSchedules.findIndex(s => s.id === id);
+                if (index === -1) return;
+                item = fixedSchedules.splice(index, 1)[0];
+                schedules.push(item);
+            }
+
+            saveAll();
+            renderSchedules();
+            showNotification(`Berhasil dipindahkan ke ${to === 'fixed' ? 'Daftar Fix' : 'Riwayat Jadwal'}`);
+        }
+
+        // --- Form & List Management ---
         form.addEventListener('submit', function (e) {
             e.preventDefault();
 
             const hour = scheduleHour.value;
             const minute = scheduleMinute.value;
 
-            // Simple validation
             if (!hour || !minute) {
                 showNotification('Pilih jam dan menit terlebih dahulu!', true);
                 return;
             }
 
-            const fullTime = `${hour}:${minute}`;
-
             const newSchedule = {
                 id: Date.now(),
                 name: customerName.value,
-                date: scheduleDate.value,
                 day: scheduleDay.value,
-                time: fullTime
+                time: `${hour}:${minute}`
             };
 
             schedules.push(newSchedule);
-            saveSchedules();
+            saveAll();
             renderSchedules();
             showNotification('Jadwal berhasil disimpan!');
             form.reset();
-            scheduleDay.value = '';
         });
 
-        // Save to LocalStorage
-        function saveSchedules() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+        function renderSchedules() {
+            renderList('history');
+            renderList('fixed');
         }
 
-        // Render Table
-        function renderSchedules() {
+        function renderList(listType) {
+            const isFixed = listType === 'fixed';
+            const body = isFixed ? fixedBody : scheduleBody;
+            const data = isFixed ? fixedSchedules : schedules;
+            const empty = isFixed ? fixedEmptyState : emptyState;
             const filter = dayFilter.value;
-            let displayData = [...schedules];
 
-            // 1. Filter by day if not 'all'
-            if (filter !== 'all') {
+            const dayOrder = {
+                'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4,
+                'Jumat': 5, 'Sabtu': 6, 'Minggu': 7
+            };
+
+            // Filter only applies to history
+            let displayData = [...data];
+            if (!isFixed && filter !== 'all') {
                 displayData = displayData.filter(s => s.day === filter);
             }
 
-            // 2. Sort by date and time
+            // Sort (Day -> Time)
             displayData.sort((a, b) => {
-                const dateTimeA = new Date(`${a.date}T${a.time}`);
-                const dateTimeB = new Date(`${b.date}T${b.time}`);
-                return dateTimeA - dateTimeB;
+                if (dayOrder[a.day] !== dayOrder[b.day]) {
+                    return dayOrder[a.day] - dayOrder[b.day];
+                }
+                return a.time.localeCompare(b.time);
             });
 
-            // Clear table
-            scheduleBody.innerHTML = '';
-
+            body.innerHTML = '';
+            
             if (displayData.length === 0) {
-                emptyState.classList.add('active');
-                return;
+                empty.classList.add('active');
+            } else {
+                empty.classList.remove('active');
+                displayData.forEach((s, index) => {
+                    const row = document.createElement('tr');
+                    row.draggable = true;
+                    row.setAttribute('ondragstart', `handleDragStart(event, ${s.id}, '${listType}')`);
+                    row.setAttribute('ondragend', `handleDragEnd(event)`);
+                    
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td style="font-weight: 500;">${s.name}</td>
+                        <td><span style="color: var(--primary-color); font-weight: 500;">${s.day}</span></td>
+                        <td>${s.time}</td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteItem(${s.id}, '${listType}')">Hapus</button>
+                        </td>
+                    `;
+                    body.appendChild(row);
+                });
             }
-
-            emptyState.classList.remove('active');
-
-            displayData.forEach((s, index) => {
-                const row = document.createElement('tr');
-                row.style.animation = `fadeIn 0.5s ease-out ${index * 0.05}s both`;
-
-                // Ensure time is in 24h format (HH:mm) if it's not already
-                // input type="time" normally provides HH:mm
-                const displayTime = s.time;
-
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td style="font-weight: 500;">${s.name}</td>
-                    <td>${formatDate(s.date)}</td>
-                    <td><span style="color: var(--primary-color); font-weight: 500;">${s.day}</span></td>
-                    <td>${displayTime}</td>
-                    <td>
-                        <button class="btn-delete" onclick="deleteSchedule(${s.id})">Hapus</button>
-                    </td>
-                `;
-                scheduleBody.appendChild(row);
-            });
         }
 
-        // Delete Handler
-        window.deleteSchedule = function (id) {
+        window.deleteItem = function (id, listType) {
             if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
-                schedules = schedules.filter(s => s.id !== id);
-                saveSchedules();
+                if (listType === 'history') {
+                    schedules = schedules.filter(s => s.id !== id);
+                } else {
+                    fixedSchedules = fixedSchedules.filter(s => s.id !== id);
+                }
+                saveAll();
                 renderSchedules();
-                showNotification('Jadwal telah dihapus', true);
+                showNotification('Data telah dihapus', true);
             }
         };
 
-        // Filter Event
-        dayFilter.addEventListener('change', renderSchedules);
-
-        // Cleanup Expired Schedules (automatically remove if date < today)
-        function cleanupExpiredSchedules() {
-            const now = new Date();
-            now.setHours(0, 0, 0, 0);
-
-            const initialCount = schedules.length;
-            schedules = schedules.filter(s => {
-                const scheduleDateObj = new Date(s.date);
-                scheduleDateObj.setHours(0, 0, 0, 0);
-                return scheduleDateObj >= now;
-            });
-
-            if (schedules.length !== initialCount) {
-                saveSchedules();
-            }
+        function saveAll() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+            localStorage.setItem(STORAGE_KEY_FIXED, JSON.stringify(fixedSchedules));
         }
 
-        // Helper: Format Date
-        function formatDate(dateStr) {
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
-            return new Date(dateStr).toLocaleDateString('id-ID', options);
-        }
-
-        // Helper: Show Notification
         function showNotification(message, isError = false) {
             notifMessage.textContent = message;
             notification.classList.toggle('error', isError);
             notification.classList.add('show');
-
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            setTimeout(() => notification.classList.remove('show'), 3000);
         }
+
+        dayFilter.addEventListener('change', renderSchedules);
 
         // Run Init
         init();
     </script>
 </body>
-
 </html>
